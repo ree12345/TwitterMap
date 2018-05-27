@@ -1,0 +1,3 @@
+# TwitterMap
+A data visualizer for Twitter, based on the location of the most recent tweets that have geolocation information.i am using the Twitter framework to get the most recent tweets within a 1-mile radius	of the user’s current location and	display it on a map. Be sure to make network requests asynchronously; synchronous requests will lock up the user interface until the request is completed!. The app will continuously poll for new tweets, and display them on the map when they are received. Once 100 pins have been placed on the map, the 10 oldest tweets should be removed. If the user taps on one of the pins, a small view should display some information about the tweet.
+
