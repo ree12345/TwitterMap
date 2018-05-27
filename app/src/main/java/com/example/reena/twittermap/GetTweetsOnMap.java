@@ -42,7 +42,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 
 /**
- * Created by natesh on 2/5/15.
+ * Created by Reena on 27/8/18.
  */
 public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallback{
     private String[] current_location;
