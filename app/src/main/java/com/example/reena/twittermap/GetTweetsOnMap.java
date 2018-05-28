@@ -26,7 +26,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 import com.example.reena.twittermap.JavaClasses.MainJson;
+
 import android.location.Location;
+
 import java.util.logging.Handler;
 
 import twitter4j.FilterQuery;
@@ -40,16 +42,15 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 
-
 /**
- * Created by Reena on 27/8/18.
+ * Created by natesh on 2/5/15.
  */
-public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallback{
+public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallback {
     private String[] current_location;
     private String TAG = "GetTweetsOnMap";
     String url;
-    private  Location currentLocation;
-    private static final String FINE_LOCATION =  android.Manifest.permission.ACCESS_FINE_LOCATION;
+    private Location currentLocation;
+    private static final String FINE_LOCATION = android.Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = android.Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private GoogleMap mMap;
@@ -57,7 +58,7 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
 
     // The entry points to the Places API.
 
-    private boolean mLocationPermissionGranted= false;
+    private boolean mLocationPermissionGranted = false;
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private static final float DEFAULT_ZOOM = 15f;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -70,9 +71,10 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
 
     private GoogleMap googleMap;
     Handler handler;
-    public  String l;
-    public  String m;
-
+    public String l;
+    public String m;
+    double latitude;
+    double longitude;
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
@@ -83,10 +85,17 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
         Log.d(TAG, "onMapReady: map is ready");
         mMap = googleMap;
 
+        //Test Code
+        //double latitude =28.55952093;
+        //double longitude =77.0016868;
+        //LatLng posi =new LatLng(latitude,longitude);
+        //mMap.addMarker(new MarkerOptions().position(posi).title("Marker in Location"));
+
+
+
         if (mLocationPermissionGranted) {
             m = getDeviceLocation();
-            if (m != null){
-                rate();
+            if (m != null) {
             }
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
@@ -96,7 +105,9 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         }
-    } @Override
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -106,23 +117,16 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
         getLocationPermission();
 
         /*
-
         /
-
         if(currentLocation!=null) {
             double latitude = currentLocation.getLatitude();
             double longitude = currentLocation.getLongitude();
             l = String.valueOf(latitude) + ":" + String.valueOf(longitude);
-
-
             current_location = l.split(":");
-
             Log.d(TAG, "Latitude: " + current_location[0] + " Longitude: " + current_location[1]);
-
             try {
                 // Loading map
                 initializeMap();
-
             } catch (Exception e) {
                 Log.d(TAG, "Map error: " + e);
                 e.printStackTrace();
@@ -134,22 +138,18 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
                     current).zoom(13f).build();
             //Animate map from the zoom set above at cameraPostion
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
             //Generating URL
             url = "https://api.twitter.com/1.1/search/tweets.json?q=&geocode=" + current_location[0] + "," + current_location[1] + ",1.6km&lang=en&result_type=recent";
             Log.d(TAG, "URL: " + url);
-
             //Fetch past tweets
             new ShowTweets().execute();
             //For upcoming tweets using bounding box
             streamIt();
-
-
         }
         */
-        double latitude =28.55952093;
-        double longitude =77.0016868;
-
+         // Specify Central Delhi
+latitude =28.5494489;
+        longitude =77.2001368;
         l = String.valueOf(latitude) + ":" + String.valueOf(longitude);
 
 
@@ -162,88 +162,75 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
         new ShowTweets().execute();
         //For upcoming tweets using bounding box
         streamIt();
-
-    }
-
-    public  void rate()
-    {
-        current_location = l.split(":");
-        url = "https://api.twitter.com/1.1/search/tweets.json?q=&geocode=" + current_location[0] + "," + current_location[1] + ",1.6km&lang=en&result_type=recent";
-        Log.d(TAG, "URL: " + url);
-
         //Fetch past tweets
-        new ShowTweets().execute();
-        //For upcoming tweets using bounding box
-        streamIt();
+
 
 
     }
-    public String getDeviceLocation(){
+
+
+    public String getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the devices current location");
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        try{
-            if( mLocationPermissionGranted){
+        try {
+            if (mLocationPermissionGranted) {
 
                 final Task location = mFusedLocationProviderClient.getLastLocation();
                 location.addOnCompleteListener(new OnCompleteListener() {
                     @Override
                     public void onComplete(@NonNull Task task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             Log.d(TAG, "onComplete: found location!");
                             currentLocation = (Location) task.getResult();
+                            latitude =currentLocation.getLatitude();
+                           longitude = currentLocation.getLongitude();
 
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
                                     DEFAULT_ZOOM);
                             //For upcoming tweets using bounding box
 
 
-
-
-
-
-                            //Fetch past tweets
-
-
-                        }else{
+                        } else {
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(GetTweetsOnMap.this, "unable to get current location", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
-                return l;  }
-        }catch (SecurityException e){
-            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage() );
+                return l;
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage());
         }
         return l;
     }
 
-    private void moveCamera(LatLng latLng, float zoom){
-        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+    private void moveCamera(LatLng latLng, float zoom) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
 
     /**
      * Prompts the user for permission to use the device location.
      */
-    private void getLocationPermission(){
+    private void getLocationPermission() {
         Log.d(TAG, "getLocationPermission: getting location permissions");
         String[] permissions = {android.Manifest.permission.ACCESS_FINE_LOCATION,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION};
 
-        if(ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-            if(ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                    COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                    COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionGranted = true;
                 initMap();
-            }else{
+            } else {
                 ActivityCompat.requestPermissions(this,
                         permissions,
                         LOCATION_PERMISSION_REQUEST_CODE);
             }
-        }else{
+        } else {
             ActivityCompat.requestPermissions(this,
                     permissions,
                     LOCATION_PERMISSION_REQUEST_CODE);
@@ -255,11 +242,11 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
         Log.d(TAG, "onRequestPermissionsResult: called.");
         mLocationPermissionGranted = false;
 
-        switch(requestCode){
-            case LOCATION_PERMISSION_REQUEST_CODE:{
-                if(grantResults.length > 0){
-                    for(int i = 0; i < grantResults.length; i++){
-                        if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
+        switch (requestCode) {
+            case LOCATION_PERMISSION_REQUEST_CODE: {
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < grantResults.length; i++) {
+                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             mLocationPermissionGranted = false;
                             Log.d(TAG, "onRequestPermissionsResult: permission failed");
                             return;
@@ -291,8 +278,6 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
             Log.e("Exception: %s", e.getMessage());
         }
     }
-
-
 */
 
     private class ShowTweets extends AsyncTask<Void, Void, String> {
@@ -330,7 +315,7 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
                         //Add marker
                         mMap.addMarker(curmarker);
 
-                    } else if(mainJson.statuses[i].retweetedStatus.geo != null){
+                    } else if (mainJson.statuses[i].retweetedStatus.geo != null) {
                         //If geo is null, it may be retweeted status
                         LatLng current = new LatLng(mainJson.statuses[i].retweetedStatus.geo.coordinates[0], mainJson.statuses[i].retweetedStatus.geo.coordinates[1]);
                         MarkerOptions curmarker = new MarkerOptions().position(current).title(mainJson.statuses[i].user.name + ": " + mainJson.statuses[i].text);
@@ -338,8 +323,7 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
                         mMap.addMarker(curmarker);
                     }
                 }
-            }
-            else  {
+            } else {
                 Log.d(TAG, "Tweets less than 100");
                 for (i = 0; i < mainJson.statuses.length; i++) {
                     //Check if geo is not null
@@ -350,8 +334,7 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
                         //Add marker
                         mMap.addMarker(curmarker);
 
-                    }
-                    else if(mainJson.statuses[i].retweetedStatus.geo != null && mainJson.statuses[i].retweetedStatus!=null&&mainJson.statuses[i]!=null) {
+                    } /*else if (mainJson.statuses[i].retweetedStatus.geo != null && mainJson.statuses[i].retweetedStatus != null && mainJson.statuses[i] != null) {
                         //If geo is null, it may be retweeted status
 
 
@@ -360,7 +343,7 @@ public class GetTweetsOnMap extends AppCompatActivity implements OnMapReadyCallb
                         //Add marker
                         mMap.addMarker(curmarker);
 
-                    }
+                    }*///--Commented on error cause - 27-05-2018
                 }
             }
 
